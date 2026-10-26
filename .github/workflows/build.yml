@@ -40,16 +40,6 @@ jobs:
           name: macos-arm64-app
           path: dist/OP-1 Loop Extractor.app
 
-      - name: Build App Store version (arm64, onedir mode)
-        run: |
-          pyinstaller mac-appstore-arm64.spec --clean --noconfirm
-
-      - name: Upload arm64 App Store app
-        uses: actions/upload-artifact@v4
-        with:
-          name: macos-arm64-appstore-app
-          path: dist/OP-1 Loop Extractor.app
-
   build-macos-intel:
     runs-on: macos-15-intel
     steps:
@@ -81,16 +71,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: macos-x86_64-app
-          path: dist/OP-1 Loop Extractor.app
-
-      - name: Build App Store version (x86_64, onedir mode)
-        run: |
-          pyinstaller mac-appstore-x86.spec --clean --noconfirm
-
-      - name: Upload x86_64 App Store app
-        uses: actions/upload-artifact@v4
-        with:
-          name: macos-x86_64-appstore-app
           path: dist/OP-1 Loop Extractor.app
 
   create-universal-macos:
@@ -241,18 +221,6 @@ jobs:
           echo "Available basic identities:"
           security find-identity -v -p basic "$KEYCHAIN_PATH" || true
 
-      - name: Download arm64 App Store app
-        uses: actions/download-artifact@v4
-        with:
-          name: macos-arm64-appstore-app
-          path: arm64-appstore-app
-
-      - name: Download x86_64 App Store app
-        uses: actions/download-artifact@v4
-        with:
-          name: macos-x86_64-appstore-app
-          path: x86_64-appstore-app
-
       - name: Preserve universal binary
         shell: bash
         run: |
@@ -261,90 +229,8 @@ jobs:
           # Save the universal (onefile) binary for Developer ID
           cp -R "dist/${APP_NAME}.app" "dist/${APP_NAME}-Devid.app"
 
-      - name: Create Universal App Store Bundle
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          APP_NAME="OP-1 Loop Extractor"
-
-          if [ -d "arm64-appstore-app/${APP_NAME}.app/Contents" ]; then
-            ARM_APP="arm64-appstore-app/${APP_NAME}.app"
-          elif [ -d "arm64-appstore-app/Contents" ]; then
-            ARM_APP="arm64-appstore-app"
-          else
-            echo "ERROR: Could not find ARM App Store app bundle"
-            exit 1
-          fi
-
-          if [ -d "x86_64-appstore-app/${APP_NAME}.app/Contents" ]; then
-            X86_APP="x86_64-appstore-app/${APP_NAME}.app"
-          elif [ -d "x86_64-appstore-app/Contents" ]; then
-            X86_APP="x86_64-appstore-app"
-          else
-            echo "ERROR: Could not find x86 App Store app bundle"
-            exit 1
-          fi
-
-          echo "ARM_APP=${ARM_APP}"
-          echo "X86_APP=${X86_APP}"
-
-          rm -rf appstore-universal-build
-          mkdir -p appstore-universal-build
-          cp -R "${ARM_APP}" "appstore-universal-build/${APP_NAME}.app"
-          UNI_APP="appstore-universal-build/${APP_NAME}.app"
-
-          lipo_pair() {
-            local arm_file="$1"
-            local x86_file="$2"
-            local out_file="$3"
-
-            mkdir -p "$(dirname "$out_file")"
-
-            if [ -f "$x86_file" ]; then
-              if lipo -create "$arm_file" "$x86_file" -output "$out_file" 2>/dev/null; then
-                :
-              else
-                cp -f "$arm_file" "$out_file"
-              fi
-            else
-              cp -f "$arm_file" "$out_file"
-            fi
-          }
-
-          # Main executable
-          lipo_pair \
-            "${ARM_APP}/Contents/MacOS/${APP_NAME}" \
-            "${X86_APP}/Contents/MacOS/${APP_NAME}" \
-            "${UNI_APP}/Contents/MacOS/${APP_NAME}"
-
-          chmod +x "${UNI_APP}/Contents/MacOS/${APP_NAME}"
-
-          # Merge dylib/so found on ARM side
-          while IFS= read -r arm_file; do
-            rel_path="${arm_file#${ARM_APP}/}"
-            x86_file="${X86_APP}/${rel_path}"
-            out_file="${UNI_APP}/${rel_path}"
-            lipo_pair "$arm_file" "$x86_file" "$out_file"
-          done < <(find "${ARM_APP}" -type f \( -name "*.dylib" -o -name "*.so" \))
-
-          # Copy dylib/so that exist only on x86 side
-          while IFS= read -r x86_file; do
-            rel_path="${x86_file#${X86_APP}/}"
-            out_file="${UNI_APP}/${rel_path}"
-            if [ ! -f "$out_file" ]; then
-              mkdir -p "$(dirname "$out_file")"
-              cp -f "$x86_file" "$out_file"
-            fi
-          done < <(find "${X86_APP}" -type f \( -name "*.dylib" -o -name "*.so" \))
-
-          echo "Universal App Store main binary architectures:"
-          lipo -info "${UNI_APP}/Contents/MacOS/${APP_NAME}"
-
-          mv "${UNI_APP}" "dist/${APP_NAME}-AppStore.app"
-
       # -------------------------
-      # Path A: Developer ID -> notarized DMG (UNCHANGED output)
+      # Developer ID -> notarized DMG
       # -------------------------
       - name: Sign and Notarize App (Developer ID)
         env:
@@ -397,126 +283,6 @@ jobs:
         with:
           name: OP-1-Loop-Extractor-macOS
           path: dist/OP-1-Loop-Extractor-macOS.dmg
-
-      # -------------------------
-      # Path B: Mac App Store .pkg for Transporter (ADDITIVE)
-      # (Enabled only if MAC_APPSTORE_PROVISIONPROFILE_BASE64 is set)
-      # -------------------------
-      - name: Embed provisioning profile (App Store)
-        env:
-          MAC_APPSTORE_PROVISIONPROFILE_BASE64: ${{ secrets.MAC_APPSTORE_PROVISIONPROFILE_BASE64 }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          if [ -z "${MAC_APPSTORE_PROVISIONPROFILE_BASE64:-}" ]; then
-            echo "MAC_APPSTORE_PROVISIONPROFILE_BASE64 not set; skipping App Store pkg build."
-            exit 0
-          fi
-
-          APP_NAME="OP-1 Loop Extractor"
-          APP_PATH="dist/${APP_NAME}-AppStore.app"
-          mkdir -p "${APP_PATH}/Contents"
-          echo "$MAC_APPSTORE_PROVISIONPROFILE_BASE64" | base64 --decode > "${APP_PATH}/Contents/embedded.provisionprofile"
-
-      - name: Ensure App Store keys in Info.plist (App Store)
-        env:
-          MAC_APPSTORE_PROVISIONPROFILE_BASE64: ${{ secrets.MAC_APPSTORE_PROVISIONPROFILE_BASE64 }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          if [ -z "${MAC_APPSTORE_PROVISIONPROFILE_BASE64:-}" ]; then
-            echo "MAC_APPSTORE_PROVISIONPROFILE_BASE64 not set; skipping App Store pkg build."
-            exit 0
-          fi
-
-          APP_NAME="OP-1 Loop Extractor"
-          APP_PATH="dist/${APP_NAME}-AppStore.app"
-          PLIST="${APP_PATH}/Contents/Info.plist"
-          test -f "$PLIST"
-
-          /usr/libexec/PlistBuddy -c "Add :CFBundleIdentifier string com.3030.op1loopextractor" "$PLIST" 2>/dev/null \
-            || /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier com.3030.op1loopextractor" "$PLIST"
-
-          /usr/libexec/PlistBuddy -c "Add :LSApplicationCategoryType string public.app-category.music" "$PLIST" 2>/dev/null \
-            || /usr/libexec/PlistBuddy -c "Set :LSApplicationCategoryType public.app-category.music" "$PLIST"
-
-          /usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "$PLIST"
-          /usr/libexec/PlistBuddy -c "Print :LSApplicationCategoryType" "$PLIST"
-
-      - name: Sign App Store app + build Transporter pkg
-        env:
-          MAC_APPSTORE_PROVISIONPROFILE_BASE64: ${{ secrets.MAC_APPSTORE_PROVISIONPROFILE_BASE64 }}
-          APPSTORE_APP_SIGN_ID: ${{ secrets.APPSTORE_APP_SIGN_ID }}
-          APPSTORE_INSTALLER_SIGN_ID: ${{ secrets.APPSTORE_INSTALLER_SIGN_ID }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          if [ -z "${MAC_APPSTORE_PROVISIONPROFILE_BASE64:-}" ]; then
-            echo "MAC_APPSTORE_PROVISIONPROFILE_BASE64 not set; skipping App Store pkg build."
-            exit 0
-          fi
-
-          APP_NAME="OP-1 Loop Extractor"
-          APP_PATH="dist/${APP_NAME}-AppStore.app"
-          BUNDLE_ID="com.3030.op1loopextractor"
-
-          APP_SIGN_ID="${APPSTORE_APP_SIGN_ID:-Apple Distribution}"
-          INSTALLER_SIGN_ID="${APPSTORE_INSTALLER_SIGN_ID:-3rd Party Mac Developer Installer}"
-
-          echo "Signing App Store app with: ${APP_SIGN_ID}"
-          echo "Expected bundle id: ${BUNDLE_ID}"
-
-          # Sign nested dylibs/.so first (best effort)
-          while IFS= read -r -d '' file; do
-            echo "Signing: $file"
-            codesign --force --sign "${APP_SIGN_ID}" \
-              --timestamp \
-              --options runtime \
-              "$file" || true
-          done < <(find "${APP_PATH}" -type f \( -name "*.dylib" -o -name "*.so" \) -print0)
-
-          # Sign main executable with entitlements (no --identifier; let Info.plist drive it)
-          codesign --force --sign "${APP_SIGN_ID}" \
-            --timestamp \
-            --options runtime \
-            --entitlements entitlements-appstore.plist \
-            "${APP_PATH}/Contents/MacOS/${APP_NAME}"
-
-          # Sign the app bundle last (no --identifier)
-          codesign --force --sign "${APP_SIGN_ID}" \
-            --timestamp \
-            --options runtime \
-            --entitlements entitlements-appstore.plist \
-            "${APP_PATH}"
-
-          echo "Verify signature:"
-          codesign --verify --strict --verbose=2 "${APP_PATH}"
-
-          echo "Identifier/TeamIdentifier:"
-          codesign -dvv "${APP_PATH}" 2>&1 | grep -E "Identifier|TeamIdentifier" || true
-
-          echo "Entitlements (must match provisioning profile):"
-          ENT="$(codesign -d --entitlements :- "${APP_PATH}" 2>/dev/null || true)"
-          echo "$ENT" | sed -n '1,200p'
-
-          # Fail fast if application identifier / team id aren't embedded correctly
-          echo "$ENT" | grep -q "UZFS64KXD5\.com\.3030\.op1loopextractor" || { echo "BAD: missing application-identifier"; exit 1; }
-          echo "$ENT" | grep -q "<key>com\.apple\.developer\.team-identifier</key>[[:space:]]*<string>UZFS64KXD5</string>" || { echo "BAD: wrong team-identifier"; exit 1; }
-
-          echo "Building App Store pkg with: ${INSTALLER_SIGN_ID}"
-          productbuild \
-            --component "${APP_PATH}" /Applications \
-            --sign "${INSTALLER_SIGN_ID}" \
-            "dist/OP-1-Loop-Extractor-macOS-AppStore.pkg"
-
-          pkgutil --check-signature "dist/OP-1-Loop-Extractor-macOS-AppStore.pkg" || true
-
-      - name: Upload macOS App Store pkg artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: OP-1-Loop-Extractor-macOS-AppStore
-          path: dist/OP-1-Loop-Extractor-macOS-AppStore.pkg
-          if-no-files-found: ignore
 
   release:
     needs: [create-universal-macos]

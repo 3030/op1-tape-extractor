@@ -41,7 +41,6 @@ OP1_LoopMaker/
 ├── core.py             # Audio/tape parsing logic, loop detection
 ├── requirements.txt    # Python dependencies
 ├── mac-dev.spec        # PyInstaller mac dev build config
-├── mac-appstore.spec   # PyInstaller Mac App Store build config
 ├── windows.spec        # PyInstaller Windows build config
 ├── build.sh            # Build script (mac-dev)
 ├── icon.icns           # App icon (generated from icon/icon.png)
@@ -173,3 +172,13 @@ Built for the OP-1 workflow. No AI guessing, no onset detection - just reads the
 - **1.0**: Added splash screen, optimized startup performance with lazy loading
 - **0.8.0**: Added support for Original OP-1 AIFF tape format (embedded region markers)
 - **0.7.0**: Initial release with OP-1 Field support
+
+The Mac App Store build setup (specs, entitlements, provisioning profile, CI steps) is parked on the `app-store` branch.
+
+## License
+
+Copyright (C) 2025-2026 Nate Schmold
+
+This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. See [LICENSE](LICENSE).
+
+Bundled third-party assets keep their own licenses: Inter font (SIL OFL 1.1, `font/OFL.txt`) and Phosphor icons (MIT, `assets/icons/phosphor/LICENSE.txt`).
