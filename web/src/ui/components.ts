@@ -140,9 +140,10 @@ export class WaveformContainer {
       const trackNum = i + 1;
       const btn = h('button', {
         class: 'mute-btn', type: 'button', title: `Mute track ${trackNum}`, 'aria-pressed': 'false',
-        style: `--track-color: ${TRACK_COLORS[i]}`,
         onclick: () => this.toggleMute(trackNum),
       }, String(trackNum));
+      // Set through CSSOM rather than a style attribute so the CSP needs no 'unsafe-inline'
+      btn.style.setProperty('--track-color', TRACK_COLORS[i]);
       this.muteButtons.push(btn);
       mutePanel.append(btn);
     }

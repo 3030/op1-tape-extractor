@@ -29,6 +29,19 @@ function pyJsonString(s: string): string {
   return JSON.stringify(s).replace(/[\u007f-￿]/g, (c) => `\\u${c.charCodeAt(0).toString(16).padStart(4, '0')}`);
 }
 
+/**
+ * Make a loop name safe to use as a folder name: no path separators, reserved
+ * characters, control characters, or "." / ".." tricks (which could otherwise
+ * write outside the export folder when a ZIP is extracted).
+ */
+export function safeFolderName(name: string, fallback = 'Loop'): string {
+  const cleaned = name
+    .replace(/[\\/:*?"<>|\u0000-\u001f\u007f]/g, '_')
+    .replace(/^[\s.]+|[\s.]+$/g, '')
+    .slice(0, 100);
+  return cleaned || fallback;
+}
+
 /** Default loop name, e.g. L001 */
 export function defaultLoopName(loop: DetectedLoop): string {
   return `L${zeroPad(loop.index, 3)}`;

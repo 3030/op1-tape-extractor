@@ -3,7 +3,7 @@
  * writing exports out (straight into a folder where supported, otherwise a ZIP).
  */
 
-import { ExportedLoop } from '../core/export';
+import { ExportedLoop, safeFolderName } from '../core/export';
 import { makeZip } from '../core/zip';
 
 /** A tape folder: its name and its files keyed by lowercase file name */
@@ -122,7 +122,7 @@ export async function chooseExportTarget(zipName: string): Promise<ExportTarget 
     return {
       label: root.name || 'the chosen folder',
       async writeLoop(loop) {
-        const dir = await root.getDirectoryHandle(loop.folderName, { create: true });
+        const dir = await root.getDirectoryHandle(safeFolderName(loop.folderName), { create: true });
         for (const file of loop.files) {
           const handle = await dir.getFileHandle(file.name, { create: true });
           const writable = await handle.createWritable();
@@ -136,10 +136,12 @@ export async function chooseExportTarget(zipName: string): Promise<ExportTarget 
 
   // ZIP download fallback
   const entries: { path: string; data: ArrayBuffer | string }[] = [];
+  zipName = safeFolderName(zipName, 'Tape Loops');
   return {
     label: `${zipName}.zip`,
     async writeLoop(loop) {
-      for (const file of loop.files) entries.push({ path: `${loop.folderName}/${file.name}`, data: file.data });
+      const folder = safeFolderName(loop.folderName);
+      for (const file of loop.files) entries.push({ path: `${folder}/${file.name}`, data: file.data });
     },
     async finish() {
       const url = URL.createObjectURL(makeZip(entries));

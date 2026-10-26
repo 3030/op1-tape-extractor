@@ -294,7 +294,15 @@ export class App {
     this.loopInfo.setLoop(loop, index);
 
     if (this.player) {
-      this.player.setRegion(loop.startSample, loop.endSample);
+      try {
+        this.player.setRegion(loop.startSample, loop.endSample);
+      } catch (err) {
+        // A malformed tape can describe a region too large to hold in memory
+        console.error(err);
+        this.stopPlayback();
+        this.statusBar.setStatus(`Can't play loop ${loop.index}: it is too long to load`);
+        return;
+      }
       if (!wasPlaying) {
         this.waveform.setPlayheadPosition(loop.startSample);
         this.playback.updateTime(loop.startSample);
@@ -574,7 +582,12 @@ export class App {
         this.statusBar.setStatus(`Exporting ${loop.customName || `loop ${loop.index}`}`);
         this.statusBar.setProgress(i, total);
         await new Promise((resolve) => setTimeout(resolve, 0));
-        const exported = exportLoop(this.audio, loop, this.session, { ...options, customFolderName: loop.customName });
+        let exported;
+        try {
+          exported = exportLoop(this.audio, loop, this.session, { ...options, customFolderName: loop.customName });
+        } catch (err) {
+          throw new Error(`could not export ${loop.customName || defaultLoopName(loop)} (${(err as Error).message})`);
+        }
         await target.writeLoop(exported);
       }
       this.statusBar.setProgress(total, total);
