@@ -12,6 +12,7 @@ from core import (
     split_loop_by_bars, SAMPLE_RATE,
     get_audio_output_devices, get_default_audio_output_device
 )
+from icons import icon
 
 # Read version
 try:
@@ -1126,6 +1127,11 @@ class WaveformContainer(QtWidgets.QWidget):
 class ComboBoxDelegate(QtWidgets.QStyledItemDelegate):
     """Custom delegate for QComboBox dropdown items with orange hover/selection"""
 
+    def __init__(self, icon_size=0):
+        super().__init__()
+        # When set, every row reserves an icon slot so text stays aligned
+        self.icon_size = icon_size
+
     def paint(self, painter, option, index):
         # Check if item is selected or hovered
         is_selected = option.state & QtWidgets.QStyle.State_Selected
@@ -1137,10 +1143,22 @@ class ComboBoxDelegate(QtWidgets.QStyledItemDelegate):
         else:
             painter.fillRect(option.rect, QtGui.QColor(COLORS['border']))
 
+        text_rect = option.rect
+        if self.icon_size:
+            icon_rect = QtCore.QRect(
+                option.rect.left() + 8,
+                option.rect.center().y() - self.icon_size // 2,
+                self.icon_size, self.icon_size
+            )
+            row_icon = index.data(Qt.DecorationRole)
+            if row_icon:
+                row_icon.paint(painter, icon_rect)
+            text_rect = option.rect.adjusted(icon_rect.right() - option.rect.left(), 0, 0, 0)
+
         # Draw text
         painter.setPen(QtGui.QColor('white'))
         text = index.data(Qt.DisplayRole)
-        painter.drawText(option.rect, Qt.AlignLeft | Qt.AlignVCenter, f"  {text}")
+        painter.drawText(text_rect, Qt.AlignLeft | Qt.AlignVCenter, f"  {text}")
 
 
 class LoopInfoPanel(QtWidgets.QWidget):
@@ -1436,8 +1454,9 @@ class AudioDeviceSelector(QtWidgets.QWidget):
         self.combo.currentIndexChanged.connect(self._on_selection_changed)
         
         # Set custom delegate for dropdown items
-        self.combo.setItemDelegate(ComboBoxDelegate())
-        
+        self.combo.setIconSize(QtCore.QSize(14, 14))
+        self.combo.setItemDelegate(ComboBoxDelegate(icon_size=14))
+
         self.combo.setStyleSheet(f"""
             QComboBox {{
                 background-color: {COLORS['border']};
@@ -1480,7 +1499,9 @@ class AudioDeviceSelector(QtWidgets.QWidget):
         layout.addWidget(self.combo)
         
         # Refresh button
-        self.refresh_btn = QtWidgets.QPushButton("↻")
+        self.refresh_btn = QtWidgets.QPushButton()
+        self.refresh_btn.setIcon(icon('refresh'))
+        self.refresh_btn.setIconSize(QtCore.QSize(14, 14))
         self.refresh_btn.setFixedSize(28, 28)
         self.refresh_btn.setCursor(Qt.PointingHandCursor)
         self.refresh_btn.setToolTip("Refresh audio devices")
@@ -1490,9 +1511,6 @@ class AudioDeviceSelector(QtWidgets.QWidget):
                 background-color: {COLORS['border']};
                 border: none;
                 border-radius: 14px;
-                color: white;
-                font-size: 14px;
-                font-weight: bold;
             }}
             QPushButton:hover {{
                 background-color: {COLORS['accent']};
@@ -1517,13 +1535,13 @@ class AudioDeviceSelector(QtWidgets.QWidget):
         # First option is always system default
         default_device = get_default_audio_output_device()
         default_name = default_device.description() if default_device else "Default"
-        self.combo.addItem(f"🔊 System Default ({default_name})")
+        self.combo.addItem(icon('audio_output'), f"System Default ({default_name})")
         
         # Add all available devices
         self._devices = get_audio_output_devices()
         for device in self._devices:
             name = device.description() or device.id().data().decode('utf-8', errors='ignore')
-            self.combo.addItem(f"  {name}")
+            self.combo.addItem(name)
         
         # Restore selection if possible
         if current_id:
