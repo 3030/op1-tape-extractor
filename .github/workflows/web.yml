@@ -1,4 +1,4 @@
-name: Deploy Web App
+name: Web App CI
 
 on:
   push:
@@ -7,20 +7,14 @@ on:
       - "web/**"
       - "font/**"
       - "assets/**"
-      - ".github/workflows/pages.yml"
+      - ".github/workflows/web.yml"
+  pull_request:
+    paths:
+      - "web/**"
   workflow_dispatch:
 
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: pages
-  cancel-in-progress: true
-
 jobs:
-  build:
+  test-and-build:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -46,19 +40,3 @@ jobs:
 
       - name: Build
         run: npm run build
-
-      - name: Upload site
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: web/dist
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4

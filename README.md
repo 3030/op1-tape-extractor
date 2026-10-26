@@ -6,7 +6,7 @@ Turn OP-1 tape sessions into usable loop folders.
 
 ## Web App
 
-Use it in your browser at **https://3030.github.io/op1-tape-extractor/**. Nothing to install, and your tapes never leave your computer: everything (decoding, loop detection, playback, export) runs locally in the page.
+Use it in your browser at **https://tools.3030.ca/op1loop/**. Nothing to install, and your tapes never leave your computer: everything (decoding, loop detection, playback, export) runs locally in the page.
 
 1. Copy the tape folder off your OP-1 (OP-1 Field: `tape.json` + `track_1-4.wav`; original OP-1: `track_1-4.aif`).
 2. Drop the folder onto the page, or click the drop zone to choose it.
@@ -27,7 +27,7 @@ npm test        # parity tests against the Python implementation
 npm run build   # static site in web/dist
 ```
 
-Pushes to `main` that touch `web/` deploy to GitHub Pages via `.github/workflows/pages.yml`.
+CI (`.github/workflows/web.yml`) runs the tests and build on every push that touches `web/`. To publish a new version to tools.3030.ca, run `web/scripts/deploy-tools.sh` (needs the tools.3030.ca repo checked out next to your home folder and SSH access to the server).
 
 The original desktop app (Python + Qt) is documented below and still works.
 
