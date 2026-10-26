@@ -1,0 +1,62 @@
+{
+  "clips": [
+    {
+      "ch": 0,
+      "id": 1,
+      "start": 0,
+      "stop": 16316
+    },
+    {
+      "ch": 1,
+      "id": 2,
+      "start": 0,
+      "stop": 16318
+    },
+    {
+      "ch": 2,
+      "id": 3,
+      "start": 1,
+      "stop": 15000
+    },
+    {
+      "ch": 3,
+      "id": 4,
+      "start": 1,
+      "stop": 10000
+    },
+    {
+      "ch": 0,
+      "id": 5,
+      "start": 16316,
+      "stop": 37317
+    },
+    {
+      "ch": 1,
+      "id": 6,
+      "start": 16318,
+      "stop": 37317
+    },
+    {
+      "ch": 2,
+      "id": 7,
+      "start": 16317,
+      "stop": 42100
+    },
+    {
+      "ch": 1,
+      "id": 8,
+      "start": 37317,
+      "stop": 60000
+    },
+    {
+      "ch": 3,
+      "id": 9,
+      "start": 42000,
+      "stop": 45000
+    }
+  ],
+  "tempobpmdecimal": 6000,
+  "loop_in": 0,
+  "loop_out": 60000,
+  "tape_type": 2
+}

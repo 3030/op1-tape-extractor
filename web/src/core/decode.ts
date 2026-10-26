@@ -101,9 +101,13 @@ function parseAiff(view: DataView): PcmLayout {
       let littleEndian = false;
       if (formType === 'AIFC' && size >= 22) {
         const compression = fourCC(view, body + 18);
-        if (compression === 'sowt') littleEndian = true;
-        else if (compression === 'fl32' || compression === 'FL32' || compression === 'fl64' || compression === 'FL64') format = 'float';
-        else if (compression !== 'NONE' && compression !== 'twos') {
+        // Little-endian integer PCM ('sowt' 16-bit; libsndfile also writes '42n1'/'23ni')
+        const littleEndianInt = ['sowt', '42ni', '42n1', '23ni'];
+        // Big-endian integer PCM
+        const bigEndianInt = ['NONE', 'twos', 'in24', 'in32'];
+        if (littleEndianInt.includes(compression)) littleEndian = true;
+        else if (['fl32', 'FL32', 'fl64', 'FL64'].includes(compression)) format = 'float';
+        else if (!bigEndianInt.includes(compression)) {
           throw new Error(`Unsupported AIFF-C compression "${compression}"`);
         }
       }

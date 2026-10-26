@@ -24,6 +24,11 @@ export interface ExportedLoop {
   files: ExportedFile[];
 }
 
+/** JSON string like Python's json.dump (ensure_ascii): everything outside space..~ is \u-escaped */
+function pyJsonString(s: string): string {
+  return JSON.stringify(s).replace(/[\u007f-￿]/g, (c) => `\\u${c.charCodeAt(0).toString(16).padStart(4, '0')}`);
+}
+
 /** Default loop name, e.g. L001 */
 export function defaultLoopName(loop: DetectedLoop): string {
   return `L${zeroPad(loop.index, 3)}`;
@@ -62,7 +67,7 @@ export function exportLoop(
     // Written by hand so floats keep Python's json formatting (120.0, not 120)
     const tracks = [...slices.keys()].map((n) => `    ${n}`).join(',\n');
     const metadata = [
-      `  "name": ${JSON.stringify(folderName)}`,
+      `  "name": ${pyJsonString(folderName)}`,
       `  "loop_index": ${loop.index}`,
       `  "bpm": ${pyFloatRepr(loop.bpm)}`,
       `  "start_sample": ${loop.startSample}`,

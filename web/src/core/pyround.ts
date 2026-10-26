@@ -15,10 +15,12 @@ export function roundHalfEven(x: number): number {
 export function pyRound(x: number, ndigits: number): number {
   const scale = 10 ** ndigits;
   const scaled = x * scale;
-  // Exact binary ties (e.g. 0.25 to 1 digit) round half to even, like Python
-  if (Number.isInteger(scaled * 2) && !Number.isInteger(scaled)) {
+  // Only exact binary ties (e.g. 0.25 to 1 digit) round half to even, like Python.
+  // x * scale is itself rounded, so confirm the tie with an exact power-of-two scale.
+  if (Number.isInteger(scaled * 2) && !Number.isInteger(scaled) && Number.isInteger(x * 2 ** (ndigits + 1))) {
     return roundHalfEven(scaled) / scale;
   }
+  // toFixed rounds the exact binary value, which matches Python for everything else
   return Number(x.toFixed(ndigits));
 }
 
