@@ -1,0 +1,22 @@
+{
+  "name": "op1-tape-extractor-web",
+  "private": true,
+  "version": "1.1.0",
+  "description": "OP-1 Tape Extractor in the browser: turn OP-1 tape sessions into loop folders.",
+  "license": "GPL-3.0-or-later",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@phosphor-icons/core": "2.1.1",
+    "@types/node": "22.20.5",
+    "typescript": "6.0.3",
+    "vite": "8.3.4",
+    "vitest": "5.0.3"
+  }
+}

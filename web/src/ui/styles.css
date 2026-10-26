@@ -1,0 +1,851 @@
+/* OP-1 Loop Extractor: styles mirror the desktop app (ui.py / app.py) */
+
+@font-face {
+  font-family: 'Inter';
+  src: url('../../../font/Inter-Light.ttf') format('truetype');
+  font-weight: 100 500;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Inter';
+  src: url('../../../font/Inter-Bold.ttf') format('truetype');
+  font-weight: 600 900;
+  font-display: swap;
+}
+
+:root {
+  --bg: #ececec;
+  --bg-waveform: #2c2c2c;
+  --panel: #ffffff;
+  --border: #3a3a3a;
+  --text: #1b1a1d;
+  --text-dim: #888888;
+  --accent: #ff6b35;
+  --accent-dim: #ffb8a0;
+  --accent-dark: #cc5528;
+  --muted: #d0d0d0;
+  --font: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  font-family: var(--font);
+  font-weight: 300;
+  font-size: 13px;
+  color: var(--text);
+  background: var(--bg) url('../assets/background.jpg') center / cover no-repeat fixed;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: default;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.icon {
+  display: block;
+  flex: none;
+}
+
+/* Labels that the desktop app shows in caps */
+.caps-label,
+.section-label,
+.app-title,
+.rescan-btn,
+.export-btn,
+.loop-info .btn-accent,
+.chip-btn,
+.status-label,
+.drop-title {
+  text-transform: uppercase;
+}
+
+.caps-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.stretch {
+  flex: 1;
+}
+
+/* ---------------------------------------------------------------------------
+   Layout
+--------------------------------------------------------------------------- */
+
+.app {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 960px;
+  height: 100vh;
+  min-height: 780px;
+  padding: 16px 16px 16px 20px;
+}
+
+.top-section {
+  display: flex;
+  align-items: stretch;
+  gap: 12px;
+}
+
+.title-block {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.app-title {
+  margin: 0 0 20px;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-dim);
+  letter-spacing: 0;
+}
+
+.controls-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.bottom-section {
+  display: flex;
+  gap: 12px;
+  flex: 1 1 0;
+  /* min-height stays auto so the info panel never overlaps the export row */
+}
+
+.list-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.section-label {
+  font-size: 13px;
+}
+
+.export-section {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 16px;
+}
+
+.export-options {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* ---------------------------------------------------------------------------
+   Drop zone and re-scan
+--------------------------------------------------------------------------- */
+
+.drop-zone {
+  width: 300px;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px;
+  background: var(--panel);
+  border: 2px dashed var(--border);
+  border-radius: 12px;
+  color: var(--text-dim);
+  font-size: 14px;
+  text-align: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.drop-zone.loaded {
+  border-style: solid;
+  border-color: var(--accent);
+  color: var(--text);
+  font-size: 16px;
+}
+
+.drop-zone.loading,
+.drop-zone.drag-over {
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.drop-zone.drag-over {
+  background: #fff6f2;
+}
+
+.drop-hint {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.drop-folder {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.drop-meta {
+  font-size: 14px;
+}
+
+.rescan-btn {
+  width: 120px;
+  min-height: 120px;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 700;
+}
+
+.rescan-btn:hover:not(:disabled) {
+  background: var(--accent-dim);
+}
+
+.rescan-btn:disabled {
+  background: var(--border);
+  color: var(--text-dim);
+}
+
+/* ---------------------------------------------------------------------------
+   Grid size chips
+--------------------------------------------------------------------------- */
+
+.grid-buttons {
+  display: flex;
+  gap: 4px;
+}
+
+.chip-btn {
+  min-width: 32px;
+  min-height: 24px;
+  padding: 4px 8px;
+  border: none;
+  border-radius: 6px;
+  background: var(--border);
+  color: var(--text-dim);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.chip-btn:hover:not(.checked) {
+  background: var(--text-dim);
+  color: #fff;
+}
+
+.chip-btn.checked {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* ---------------------------------------------------------------------------
+   Waveform
+--------------------------------------------------------------------------- */
+
+.waveform-container {
+  flex: 2 1 0;
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 8px 8px 0;
+  background: var(--bg-waveform);
+  border: 2px solid var(--border);
+  border-radius: 3px;
+}
+
+.scroll-row {
+  padding-left: 32px;
+}
+
+.scroll-track {
+  position: relative;
+  height: 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.scroll-thumb {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  min-width: 40px;
+  background: var(--text-dim);
+  border-radius: 5px;
+  cursor: grab;
+  touch-action: none;
+}
+
+.scroll-thumb:hover {
+  background: var(--accent);
+}
+
+.waveform-row {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+.mute-panel {
+  position: relative;
+  width: 32px;
+  flex: none;
+}
+
+/* Centered on each track lane: (0.2 + n) / 4.7 of the plot height above the 22px axis */
+.mute-btn {
+  position: absolute;
+  left: 2px;
+  width: 26px;
+  height: 26px;
+  transform: translateY(-50%);
+  border: none;
+  border-radius: 13px;
+  background: var(--track-color);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.mute-btn:nth-child(1) { top: calc((100% - 22px) * 1.2 / 4.7); }
+.mute-btn:nth-child(2) { top: calc((100% - 22px) * 2.2 / 4.7); }
+.mute-btn:nth-child(3) { top: calc((100% - 22px) * 3.2 / 4.7); }
+.mute-btn:nth-child(4) { top: calc((100% - 22px) * 4.2 / 4.7); }
+
+.mute-btn.muted {
+  background: var(--muted);
+  color: var(--text-dim);
+}
+
+.waveform-plot {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.waveform-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none;
+}
+
+/* ---------------------------------------------------------------------------
+   Round transport and tool buttons
+--------------------------------------------------------------------------- */
+
+.playback-controls,
+.edit-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.edit-toolbar {
+  gap: 4px;
+}
+
+.toolbar-gap {
+  width: 12px;
+}
+
+.round-btn {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 2px solid var(--border);
+  border-radius: 24px;
+  background: linear-gradient(135deg, #ffffff, var(--panel));
+  color: var(--text);
+}
+
+.round-btn:hover:not(.checked) {
+  background: linear-gradient(135deg, #ffffff, var(--bg));
+  border-color: var(--text);
+}
+
+.round-btn:active {
+  background: linear-gradient(315deg, #ffffff, var(--text-dim));
+}
+
+.round-btn.checked {
+  background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+  border-color: var(--accent);
+}
+
+.time-label {
+  padding: 0 24px;
+  font-size: 32px;
+  font-weight: 300;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------------------------------------------------------------------------
+   Output device
+--------------------------------------------------------------------------- */
+
+.device-selector {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 16px;
+}
+
+.device-select,
+.split-select {
+  min-width: 0;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--border);
+  color: #fff;
+  font-size: 11px;
+}
+
+.device-select {
+  width: 220px;
+}
+
+.icon-btn {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: none;
+  border-radius: 14px;
+  background: var(--border);
+  color: #fff;
+}
+
+.icon-btn:hover {
+  background: var(--accent);
+}
+
+.link-btn {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+/* ---------------------------------------------------------------------------
+   Loop list and info panel
+--------------------------------------------------------------------------- */
+
+.loop-list {
+  flex: 1;
+  min-height: 120px;
+  overflow-y: auto;
+  background: var(--panel);
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+.loop-list:focus-visible {
+  outline-offset: -4px;
+}
+
+.loop-row {
+  display: flex;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.loop-row > span + span::before {
+  content: '';
+  display: inline-block;
+  width: 1px;
+  height: 12px;
+  margin: 0 12px;
+  vertical-align: -2px;
+  background: var(--text);
+}
+
+.loop-row:hover {
+  background: var(--bg);
+}
+
+.loop-row.selected {
+  background: var(--accent-dim);
+}
+
+.loop-info {
+  width: 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+}
+
+.name-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+.name-input {
+  min-height: 32px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  font-size: 14px;
+}
+
+.info-row {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+}
+
+.subsplit-label {
+  margin-top: 8px;
+}
+
+.split-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-accent,
+.btn-plain {
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-weight: 700;
+}
+
+.btn-accent {
+  border: none;
+  background: var(--accent);
+  color: #fff;
+}
+
+.btn-accent:hover:not(:disabled) {
+  background: var(--accent-dim);
+}
+
+.btn-accent:disabled {
+  background: var(--border);
+  color: var(--text-dim);
+}
+
+.btn-plain {
+  border: 2px solid var(--border);
+  background: var(--panel);
+}
+
+.btn-plain:hover {
+  border-color: var(--text);
+  background: var(--bg);
+}
+
+/* ---------------------------------------------------------------------------
+   Export
+--------------------------------------------------------------------------- */
+
+.round-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.round-check input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+
+.check-indicator {
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--border);
+  border-radius: 9px;
+  background: var(--bg-waveform);
+  color: var(--accent);
+}
+
+.check-indicator .icon {
+  visibility: hidden;
+}
+
+.round-check input:checked + .check-indicator .icon {
+  visibility: visible;
+}
+
+.round-check:hover .check-indicator {
+  border-color: var(--text);
+}
+
+.round-check input:focus-visible + .check-indicator {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.export-btn {
+  min-width: 150px;
+  min-height: 40px;
+  border: none;
+  border-radius: 10px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.export-btn:hover:not(:disabled) {
+  background: var(--accent-dim);
+}
+
+.export-btn:disabled {
+  background: var(--border);
+  color: var(--text-dim);
+}
+
+/* ---------------------------------------------------------------------------
+   Status bar
+--------------------------------------------------------------------------- */
+
+.status-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 8px;
+}
+
+.status-label {
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.status-progress {
+  width: 200px;
+  accent-color: var(--accent);
+}
+
+.help-btn {
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--text-dim);
+  border-radius: 12px;
+  background: transparent;
+  color: var(--text-dim);
+}
+
+.help-btn:hover {
+  background: var(--panel);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.version {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.version a {
+  color: var(--text-dim);
+  text-decoration: none;
+}
+
+/* ---------------------------------------------------------------------------
+   Modals (close only through their own buttons)
+--------------------------------------------------------------------------- */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(27, 26, 29, 0.45);
+}
+
+.modal {
+  width: min(440px, 100%);
+  background: var(--bg);
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 14px 0 20px;
+}
+
+.modal-title {
+  flex: 1;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.modal-close {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: none;
+  border-radius: 14px;
+  background: transparent;
+  color: var(--text-dim);
+}
+
+.modal-close:hover {
+  background: var(--panel);
+  color: var(--accent);
+}
+
+.modal-body {
+  padding: 12px 20px 20px;
+}
+
+.modal-message {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 0 20px 20px;
+}
+
+/* About dialog, laid out like the desktop canvas */
+.about-modal {
+  width: min(600px, 100%);
+}
+
+.about {
+  position: relative;
+  min-height: 330px;
+  padding-top: 40px;
+}
+
+.about-logo {
+  position: absolute;
+  top: 0;
+  right: 0;
+  max-height: 60px;
+}
+
+.about-title {
+  font-size: 48px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.about-subtitle {
+  font-size: 32px;
+  font-weight: 300;
+}
+
+.about-rule {
+  width: 300px;
+  height: 4px;
+  margin: 18px 0 40px;
+  background: var(--accent);
+}
+
+.about-version {
+  font-size: 14px;
+  color: var(--text-dim);
+}
+
+.about-credit {
+  margin: 16px 0 0;
+  text-align: right;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.about-note {
+  margin: 8px 0 0;
+  text-align: right;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.about a {
+  color: var(--accent);
+}

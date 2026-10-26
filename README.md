@@ -1,8 +1,35 @@
 # OP-1 Loop Extractor
 
-A desktop app that automatically converts OP-1 tape sessions into usable loop folders.
+Turn OP-1 tape sessions into usable loop folders.
 
 **Supports both OP-1 Field and Original OP-1 tape formats!**
+
+## Web App
+
+Use it in your browser at **https://3030.github.io/op1-tape-extractor/**. Nothing to install, and your tapes never leave your computer: everything (decoding, loop detection, playback, export) runs locally in the page.
+
+1. Copy the tape folder off your OP-1 (OP-1 Field: `tape.json` + `track_1-4.wav`; original OP-1: `track_1-4.aif`).
+2. Drop the folder onto the page, or click the drop zone to choose it.
+3. Audition, rename, split, glue, add or remove loops, then **Export Loops**.
+
+Browser support:
+
+- **Chrome, Edge, Arc, Brave:** everything, including exporting straight into a folder and choosing the audio output device.
+- **Safari, Firefox:** everything except those two; exports download as a ZIP and audio plays through the system default output.
+
+The web app lives in [`web/`](web/) (TypeScript + Vite, no runtime dependencies):
+
+```bash
+cd web
+npm install
+npm run dev     # local dev server
+npm test        # parity tests against the Python implementation
+npm run build   # static site in web/dist
+```
+
+Pushes to `main` that touch `web/` deploy to GitHub Pages via `.github/workflows/pages.yml`.
+
+The original desktop app (Python + Qt) is documented below and still works.
 
 ## What It Does
 
