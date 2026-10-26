@@ -806,6 +806,11 @@ button:disabled {
   position: absolute;
   top: 0;
   right: 0;
+  display: block;
+}
+
+.about-logo img {
+  display: block;
   max-height: 60px;
 }
 

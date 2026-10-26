@@ -594,7 +594,8 @@ export class App {
 
   private showAbout(): void {
     const body = h('div', { class: 'about' },
-      h('img', { class: 'about-logo', src: logoUrl, alt: '3030' }),
+      h('a', { class: 'about-logo', href: 'https://3030.ca', target: '_blank', rel: 'noopener', title: '3030.ca' },
+        h('img', { src: logoUrl, alt: '3030' })),
       h('div', { class: 'about-title' }, 'OP-1'),
       h('div', { class: 'about-subtitle' }, 'Loop Extractor'),
       h('div', { class: 'about-rule' }),
